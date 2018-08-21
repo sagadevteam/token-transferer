@@ -1,0 +1,24 @@
+{
+  "name": "token-transferer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "web3": "^0.20.7",
+    "web3-guard": "^0.1.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sagadevteam/token-transferer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sagadevteam/token-transferer/issues"
+  },
+  "homepage": "https://github.com/sagadevteam/token-transferer#readme"
+}
