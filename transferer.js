@@ -34,7 +34,8 @@ let getRecentTickets = async () => {
                                    FROM tickets as t
                                    INNER JOIN inventories as i on (t.inventory_id = i.inventory_id)
                                    INNER JOIN users as u on (t.user_id = u.user_id)
-                                   WHERE t.to_user = '0'
+                                   WHERE t.on_chain = '1'
+                                   AND t.to_user = '0'
                                    AND unix_timestamp() >= (t.time - 7 * 86400)`
 
     db.query(getRecentSoldTicketsSQL, (err, results) => {
@@ -121,6 +122,7 @@ let main = async () => {
         guard.wait(event)
       } else {
         await updateTicketToOnChain(token_id)
+        console.log('updated to_user to true: ' + token_id)
         guard = null
       }
     }))
