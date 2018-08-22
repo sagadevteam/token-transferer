@@ -85,14 +85,18 @@ let main = async () => {
       }
     )
 
+    console.log(txHash)
+
     guard.do(txHash)
 
     guard
     .on(hotel, hotel.Transfer().watch(async (err, event) => {
       if (err) console.error(err)
       if (!event.confirmed) {
+        console.log('Not confirm ticket transfer: ' + event.transactionHash)
         guard.wait(event)
       } else {
+        console.log('confirm ticket transfer: ' + event.transactionHash)
         let price = new BigNumber(ticket_price)
         let decimals = await point.decimals()
         decimals = parseInt(decimals)
@@ -108,6 +112,7 @@ let main = async () => {
             gas: 470000
           }
         )
+        console.log('burn admin token: ' + txHash)
         guard.do(txHash)
       }
     })).on(point, point.Burn().watch(async (err, event) => {
