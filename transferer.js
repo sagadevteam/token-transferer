@@ -34,7 +34,7 @@ let getRecentTickets = async () => {
                                    FROM tickets as t
                                    INNER JOIN inventories as i on (t.inventory_id = i.inventory_id)
                                    INNER JOIN users as u on (t.user_id = u.user_id)
-                                   WHERE t.on_chain = '0'
+                                   WHERE t.to_user = '0'
                                    AND unix_timestamp() >= (t.time - 7 * 86400)`
 
     db.query(getRecentSoldTicketsSQL, (err, results) => {
@@ -50,7 +50,7 @@ let getRecentTickets = async () => {
 let updateTicketToOnChain = async (tokenID) => {
   return new Promise ((resolve, reject) => {
     let updateSQL = `UPDATE tickets
-                    SET on_chain = 1
+                    SET to_user = 1
                     WHERE ticket_id = '${tokenID}'`
 
     db.query(updateSQL, (err, result) => {
