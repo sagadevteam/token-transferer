@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "bignumber.js": "^7.2.1",
+    "mysql": "^2.16.0",
     "web3": "^0.20.7",
-    "web3-guard": "^0.1.1"
+    "web3-guard": "^0.2.0"
   },
   "devDependencies": {},
   "scripts": {
