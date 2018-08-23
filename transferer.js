@@ -64,15 +64,16 @@ let updateTicketToOnChain = async (tokenID) => {
   })
 }
 
-let main = async () => {
+let transferTokens = async () => {
   let rows = await getRecentTickets()
-  rows.forEach(async (row, index) => {
+  for (let index = 0; index < rows.length; index++) {
+    let row = rows[index]
     let { user_address, token_id, ticket_price } = row
     // transfer ERC721 to user_address
     console.log(user_address, token_id, ticket_price)
 
     let guard = new Guard(web3)
-    let confirmations = 12
+    let confirmations = 6
     guard = guard.bind(index).confirm(confirmations)
 
     let txHash = await hotel.safeTransferFrom(
@@ -87,83 +88,24 @@ let main = async () => {
     )
 
     console.log(txHash)
-
-    guard.do(txHash)
+    guard.listen(txHash)
 
     guard
     .on(hotel, hotel.Transfer().watch(async (err, event) => {
-      if (err) console.error(err)
-      if (!event.confirmed) {
-        console.log('Not confirm ticket transfer: ' + event.transactionHash)
-        guard.wait(event)
+      if (err) {
+        console.error(err)
       } else {
-        console.log('confirm ticket transfer: ' + event.transactionHash)
-        let price = new BigNumber(ticket_price)
-        let decimals = await point.decimals()
-        decimals = parseInt(decimals)
-        ten = new BigNumber(10)
-        let priceUnitOnContract = price.multipliedBy(ten.pow(decimals))
-        priceUnitOnContract = priceUnitOnContract.toString()
-        let txHash = await point.burn(
-          web3.eth.coinbase,
-          priceUnitOnContract,
-          {
-            from: web3.eth.coinbase, 
-            to: point.address,
-            gas: 470000
-          }
-        )
-        console.log('burn admin token: ' + txHash)
-        guard.do(txHash)
-      }
-    })).on(point, point.Burn().watch(async (err, event) => {
-      if (err) console.error(err)
-      if (!event.confirmed) {
-        guard.wait(event)
-      } else {
-        await updateTicketToOnChain(token_id)
-        console.log('updated to_user to true: ' + token_id)
-        guard = null
-      }
-    }))
-  })
-
-  setInterval(async () => {
-    let rows = await getRecentTickets()
-    rows.forEach(async (row, index) => {
-      let { user_address, token_id, ticket_price } = row
-
-      let guard = new Guard(web3)
-      let confirmations = 12
-
-      guard = guard.confirm(confirmations).bind(index)
-
-      let txHash = await hotel.safeTransferFrom(
-        web3.eth.coinbase,
-        user_address,
-        token_id,
-        {
-          from: web3.eth.coinbase, 
-          to: hotel.address,
-          gas: 470000
-        }
-      )
-
-      guard.do(txHash)
-
-      guard
-      .on(hotel, hotel.Transfer().watch(async (err, event) => {
-        if (err) console.error(err)
         if (!event.confirmed) {
+          console.log('Not confirm ticket transfer: ' + event.transactionHash)
           guard.wait(event)
         } else {
+          console.log('confirm ticket transfer: ' + event.transactionHash)
           let price = new BigNumber(ticket_price)
           let decimals = await point.decimals()
           decimals = parseInt(decimals)
           ten = new BigNumber(10)
           let priceUnitOnContract = price.multipliedBy(ten.pow(decimals))
           priceUnitOnContract = priceUnitOnContract.toString()
-
           let txHash = await point.burn(
             web3.eth.coinbase,
             priceUnitOnContract,
@@ -173,19 +115,31 @@ let main = async () => {
               gas: 470000
             }
           )
-          guard.do(txHash)
+          console.log('burn admin token: ' + txHash)
+          guard.listen(txHash)
         }
-      })).on(point, point.Burn().watch(async (err, event) => {
-        if (err) console.error(err)
+      }
+    })).on(point, point.Burn().watch(async (err, event) => {
+      if (err) {
+        console.error(err)
+      } else {
         if (!event.confirmed) {
           guard.wait(event)
         } else {
           await updateTicketToOnChain(token_id)
-          guard = null
+          console.log('updated to_user to true: ' + token_id)
+          guard.destroy()
         }
-      }))
-    })
-  }, 60000)
+      }
+    }))
+  }
+}
+
+let main = async () => {
+  await transferTokens()
+  setInterval(async () => {
+    await transferTokens()
+  }, 86400000)
 }
 
 main()
